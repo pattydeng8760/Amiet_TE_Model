@@ -66,7 +66,7 @@ class PhippModels:
             phipp = 10*np.log10(phi_pp/norm_val)
         return phipp
     
-    def compute_corrlen(self,freq, bc:float=0.52, Uc:float=0.85):
+    def compute_corrlen(self,freq, bc:float=0.52, Uc:float=0.85*30):
         """
         Computes the spanwise correlation length
         """

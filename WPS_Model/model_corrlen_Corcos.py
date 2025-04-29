@@ -56,6 +56,6 @@ def corrlen_Corcos(freq: float, bc: float, Uc: float) -> float:
     if freq[0] == 0:
         corrlen_Corcos_out = np.concatenate(([0], corrlen_Corcos_out), axis=0)
     else:
-        corrlen_Corcos_out = np.concatenate((bc * Uc/(2*math.pi*freq[0]) , corrlen_Corcos_out), axis=0)
+        corrlen_Corcos_out = np.concatenate((np.array([bc * Uc/(2*math.pi*freq[0])]) , corrlen_Corcos_out), axis=0)
         
     return corrlen_Corcos_out
