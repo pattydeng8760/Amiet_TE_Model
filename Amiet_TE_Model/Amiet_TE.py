@@ -1,5 +1,5 @@
 """
-    AimetTE -- Trailing-edge noise prediction using Amiet's analytical model
+    AmietTE -- Trailing-edge noise prediction using Amiet's analytical model
 
     Implements Amiet's trailing-edge noise model with extensions to account for 
     coherence effects and empirical/analytical wall-pressure spectrum models. This class 
@@ -81,12 +81,12 @@ from .calc_rdirsupTE import rdirsupTE
 from .utils_checkdata import check_data
 from WPS_Model import phipp_models
 
-class AimetTE:
+class AmietTE:
     def __init__(self, observers:list, data:pd.Series, freq:list = None, \
         phipp_method:str='rozenberg', coh_method:str='crocos', spectra:str=None, coherence:str=None,\
         cinf:float = 343, span:float = 0.5715, chord:float = 0.3048):
         """
-        Initialize the AimetTE class.
+        Initialize the AmietTE class.
 
         Parameters:
             observers (list): List of observer coordinates.
@@ -101,6 +101,7 @@ class AimetTE:
             chord (float): Airfoil chord (m), default is 0.3048 m.
         
         """
+        print(f"\n{'Computing Amiets Trailing Edge Model':=^100}\n")  
         if freq is None: 
             freq = np.linspace(0, 20000, 100)
             freq[0] = 1e-6 # Avoid zero frequency
@@ -109,10 +110,20 @@ class AimetTE:
         self.phipp_method = phipp_method.lower()
         self.coh_method = coh_method.lower()
         self.data = data
-        if self.phipp_method not in ['simulation', 'experiment']:
-            self.spectra_path = spectra
-        if self.coh_method not in ['simulation', 'experiment']:
-            self.coherence_path = coherence
+        self.spectra_path = spectra if self.phipp_method in ['simulation', 'experiment'] else None
+        self.coherence_path = coherence if self.coh_method in ['simulation', 'experiment'] else None
+        
+        print('Model Settings:')
+        print(f"    Frequency range: {freq[0]:.2f} Hz to {freq[-1]:.2f} Hz")
+        print(f"    Chord: {chord:.4f} m")
+        print(f"    Span: {span:.4f} m")
+        print(f"    Speed of sound: {cinf:.2f} m/s")
+        print(f"    Wall-pressure spectrum method: {phipp_method}")
+        print(f"    Coherence method: {coh_method}")
+        print(f"    Spectra file: {spectra}") if self.phipp_method in ['simulation', 'experiment'] else None
+        print(f"    Coherence file: {coherence}") if self.coh_method in ['simulation', 'experiment'] else None
+            
+
             
         # Checking input data validity
         try:
@@ -123,8 +134,6 @@ class AimetTE:
         self.chord = data['chord'] if 'chord' in data else chord
         self.span = data['span'] if 'span' in data else span
         self.cinf = data['cinf'] if 'cinf' in data else cinf
-        # Initialize the output variables Directivity and Spp
-        self.Spp, self.Directivity  = np.zeros((len(freq), len(observers))), np.zeros((len(freq), len(observers)), dtype=complex)
         
     def compute_spectra(self):
         """
@@ -133,47 +142,60 @@ class AimetTE:
             ValueError: If the spectra or coherence files do not exist when using 'simulation' or 'experiment'.
             ValueError: If the phipp_method or coh_method is not recognized.
         """
+        if self.spectra_path is None or self.coherence_path is None:
+            phipp_model = phipp_models.PhippModels(self.phipp_method, self.data, normalization='frequency', spectral_normalization=2e-5, verbose=True)
+        
+        print(f"\n{'Extracting phipp and coherence':.^60}\n")  
         if self.phipp_method == 'simulation' or self.phipp_method == 'experiment':
+            print('----> Extracting phipp from {0:s} data:'.format(self.phipp_method))
             if os.path.exists(self.spectra_path):
                 freq_phipp, Phipp = self.read_spectra(self.spectra_path)
-                print('Frequency and spectra loaded, using user-provided frequency and spectra.')
+                print('    Frequency and spectra loaded, using user-provided frequency and spectra.')
             else: 
                 raise ValueError("Spectra file does not exist.")
         else :
-            phipp_model = phipp_models.PhippModels(self.phipp_method, self.data, normalization='frequency', spectral_normalization=2e-5)
+            print('----> Extracting phipp from {0:s} model'.format(self.phipp_method))
             freq_phipp = self.freq
             Phipp = phipp_model.compute_phipp(self.freq)
         
         if self.coh_method == 'simulation' or self.coh_method == 'experiment':
+            print('----> Extracting coherence from {0:s} data'.format(self.coh_method))
             if os.path.exists(self.coherence_path):
                 freq_Ly, Ly = self.read_spectra(self.coherence_path)
-                print('Frequency and coherence loaded, using user-provided frequency and coherence.')
+                print('    Frequency and coherence loaded, using user-provided frequency and coherence.')
             else:
                 raise ValueError("Coherence file does not exist.")
         else:
-            phipp_model = phipp_models.PhippModels(self.phipp_method, self.data, normalization='frequency', spectral_normalization=2e-5)
+            print('----> Extracting coherence from {0:s} method'.format(self.coh_method))
             Ly = phipp_model.compute_corrlen(self.freq, bc=0.52, Uc=24)
             freq_Ly = self.freq
         
         if math.isclose(freq_phipp[0], freq_Ly[0]) == False:
-            print("Spectra and coherence frequencies do not match.\nInterpolating to match frequencies.")
+            print("----> Spectra and coherence frequencies do not match.\n    Interpolating to match frequencies.")
             Ly_interp = np.interp(freq_phipp, freq_Ly, Ly)
             Ly = Ly_interp
         
         self.freq = freq_phipp
+        if math.isclose(self.freq[0],0) == True:
+            self.freq[0] = 1e-3 
         self.Phipp = Phipp
         self.Ly = Ly
+        print(f"\n{'phipp and coherence extraction complete':.^60}\n")  
 
     def calculate_Spp(self):
-        """ Main function to calculate the far-field sound pressure spectral density (Spp) based on Aimet's model with leading-edge corrections.
+        """ Main function to calculate the far-field sound pressure spectral density (Spp) based on Amiet's model with leading-edge corrections.
         over the specified frequency range and observer locations.
 
         Returns:
             Spp (ndarray): Sound pressure spectral density in dB, shape (n_freqs, n_observers).
         """
+        # Initialize the output variables Directivity and Spp
+        print(f"\n{'Calculating Spp':.^60}\n")
+        self.Spp, self.Directivity  = np.zeros((len(self.freq), len(self.observers))), np.zeros((len(self.freq), len(self.observers)), dtype=complex)
         Uinf = self.data['Uref']
         Ma = Uinf/self.cinf
         be = 1 - Ma**2
+        print('----> Looping over {0:3d} frequencies and {1:3d} observers:'.format(len(self.freq), len(self.observers)))
         for i, freq in enumerate(self.freq):
             phippi = self.Phipp[i]
             Lyi = self.Ly[i]
@@ -188,21 +210,23 @@ class AimetTE:
 
         if self.Spp.any()< -25: 
             self.Spp[self.Spp < -25] = -25
+        print(f"\n{'Complete Spp Calculation':.^60}\n")
         return self.Spp
     
-    def compute_Aimet(self):
+    def compute_Amiet(self):
         """
-        Wrapper function to compute the Aimet TE spectra and coherence.
+        Wrapper function to compute the Amiet TE spectra and coherence.
         """
-        # Calculate the spectra and coherence to prep for the Aimet model
+        # Calculate the spectra and coherence to prep for the Amiet model
         try: 
             self.compute_spectra()
             # Calculate the spectra
             Spp = self.calculate_Spp()
-            print("Aimet TE spectra calculated successfully.")
+            print("Amiet TE spectra calculated successfully.")
         except Exception as e:
-            print(f"Error in Aimet TE spectra calculation: {e}")
+            print(f"Error in Amiet TE spectra calculation: {e}")
             raise
+        print(f"\n{'Complete Amiets Trailing Edge Model':=^100}\n")  
         return Spp
         
     @staticmethod
@@ -220,7 +244,6 @@ class AimetTE:
         col1: numpy array of second column, should be spectral content
         """
         header_arg = 0 if has_header else None
-        print('Loading spectra file:', filename)
         df = pd.read_csv(
             filename,
             sep=r'[\s,]+',    # any run of whitespace or commas as delimiter

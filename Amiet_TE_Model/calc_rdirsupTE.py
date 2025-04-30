@@ -95,7 +95,7 @@
 import numpy as np
 from .calc_fresnel import FresCS2
 
-def rdirsupTE(freq, x1, x2, x3, chord, Uinf, alpha, cinf):
+def rdirsupTE(freq, x1:float, x2:float, x3:float, chord:float=0.3048, Uinf:float=30, Uc:float=24, cinf:float=343) -> complex:
     """
     Vectorized computation of the radiation integral directivity for supercritical gusts
     in trailing-edge noise model, allowing arrays of frequencies and observer locations.
@@ -107,7 +107,7 @@ def rdirsupTE(freq, x1, x2, x3, chord, Uinf, alpha, cinf):
         x3 (float or ndarray): Vertical observer coordinate (m).
         chord (float): Airfoil chord (m).
         Uinf (float): Free-stream velocity (m/s).
-        alpha (float): Ratio of free-stream velocity to convective velocity (Uinf/Uc).
+        Uc (float): Ratio of free-stream velocity to convective velocity (Uinf/Uc).
         cinf (float): Free-stream speed of sound (m/s).
 
     Returns:
@@ -135,6 +135,7 @@ def rdirsupTE(freq, x1, x2, x3, chord, Uinf, alpha, cinf):
     mu = Kb * M / be2                       # Mach number in the convective frame
     kapa = np.sqrt(np.real(mu**2 - Kby**2 / be2 )) # Complex square root
     exp4ikapa = np.exp(4.0j * kapa)             # Exponential term
+    alpha = Uinf / Uc                       # Ratio of free-stream velocity to convective velocity (NOTE: NOT ANGLE OF ATTACK!)
 
     epsi = 1.0 / np.sqrt(1.0 + 1.0 / (4.0 * mu))    # Epsilon term
     S0 = np.sqrt(x1**2 + be2 * (x2**2 + x3**2))     # Distance from the source to the observer
@@ -185,9 +186,10 @@ def rdirsupTE(freq, x1, x2, x3, chord, Uinf, alpha, cinf):
             * zfre2
     #===================================================
     # Finalizing computation
-    #L1 += L1_adj
     L1 = L1 * 1j * np.exp(2.0j * CC) / CC
-
+    #===================================================
+    # The final result is the sum of L1 and L2 for the Leading Edge and Trailing Edge contributions
+    
     rdirsupTE_out =  L1 + L2
 
     return rdirsupTE_out

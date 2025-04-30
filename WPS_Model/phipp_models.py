@@ -11,21 +11,26 @@ class PhippModels:
     The PhippModels class computes the power spectral density (PSD) of wall pressure fluctuations using the specified model
     
     Args: 
-        model (str): The model to use
+        model (str): The model to use: 'goody', 'rozenberg', 'lee', 'experiment', or 'simulation'.
         data (pd.DataFrame): Input data containing the flow parameters for the model.
+        spectra (np.array): The custom spectra to use for the model if simulation or experiment is selected.
         normalization (str): The normalization method to use, either 'frequency', 'struhal', or 'omega'.
         spectral_normalization (str): The spectral normalization method to use to scale the PSD. default is 2e-5.
     
     """
-    def __init__(self, model:str, data:pd.DataFrame, normalization:str='frequency', spectral_normalization:float=2e-5):
+    def __init__(self, model:str, data:pd.DataFrame=None, \
+        normalization:str='frequency', spectral_normalization:float=2e-5, verbose:bool=False):
+        print(f"\n{'Computing Analytical Wall-Pressure Spectra':.^60}\n")  
         assert model.lower() in ['goody','rozenberg', 'lee'], "Model must be 'goody' or 'rozenberg' or 'lee'"
         self.model = model
+        self.verbose = verbose
         self.spectral_norm = spectral_normalization
         if normalization.lower() not in ['frequency','struhal','omega']:
             raise ValueError("Normalization must be 'frequency' or 'struhal' or 'omega'")
         
         # Initialize the model parameters
         self.map_model(data)
+        print(f"\n{'Initialized Analytical Wall-Pressure Spectra':.^60}\n")  
 
     def universal_model(self,freq):
         omega = 2*np.pi*freq
@@ -44,7 +49,7 @@ class PhippModels:
             inputs = phipp_Rozenberg(data)
         elif self.model.lower() == 'lee':
             inputs = phipp_Lee(data)
-            
+        self.data = data
         # Unpack the inputs and assign them to the class attributes
         (
             self.SS_, self.FS_, self.Rt_,
@@ -52,7 +57,9 @@ class PhippModels:
             self.e_, self.f_, self.g_, self.h_, self.i_
         ) = inputs
 
-    def compute_model(self,freq,spectral_normalization=None):
+    def compute_phipp(self,freq,spectral_normalization=None):
+        if self.verbose:
+            self.print_inputs()
         phi_pp, omega = self.universal_model(freq)
         # Normalize the model as (2e-5)**2 or a user defined value float 
         norm_val = (self.spectral_norm)**2 if spectral_normalization is None else spectral_normalization
@@ -70,6 +77,23 @@ class PhippModels:
         """
         Computes the spanwise correlation length
         """
+        if self.verbose:
+            print("Computing spanwise correlation length with Crocos' Model:\n      bc (Crocos' Constant): {0:2.2f},\n      Uc (convection velocity): {1:2.2f}".format(bc,Uc), flush=True)
         corrlen = corrlen_Corcos(freq, bc, Uc)
         return corrlen
         
+    def print_inputs(self):
+        """
+        Print the model inputs
+        """
+        print("Computing Wall pressure spectra Phipp with {0:s}:\n".format(self.model), flush=True)
+
+        print("{:<45}: {:>10.4f}".format("    Ue (boundary layer edge velocity)", self.data['Ue']))
+        print("{:<45}: {:>10.4f}".format("    delta (boundary layer thickness)", self.data['delta']))
+        print("{:<45}: {:>10.4f}".format("    delta_star (displacement thickness)", self.data['delta_star']))
+        print("{:<45}: {:>10.4f}".format("    theta (momentum thickness)", self.data['theta']))
+        print("{:<45}: {:>10.4f}".format("    tau_w (wall shear stress)", self.data['tau_w']))
+        print("{:<45}: {:>10.4f}".format("    beta_c (Clauser parameter)", self.data['beta_c']))
+        print("{:<45}: {:>10.4f}".format("    PI (pressure gradient parameter)", self.data['PI']))
+        print("{:<45}: {:>10.4f}".format("    Rt (external/internal time scale ratio)", self.data['Rt']))
+
