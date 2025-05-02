@@ -84,7 +84,7 @@ from WPS_Model import phipp_models
 class AmietTE:
     def __init__(self, observers:list, data:pd.Series, freq:list = None, \
         phipp_method:str='rozenberg', coh_method:str='crocos', spectra:str=None, coherence:str=None,\
-        cinf:float = 343, span:float = 0.5715, chord:float = 0.3048):
+        cinf:float = 343, span:float = 0.5715, chord:float = 0.3048, Uc:float = 24):
         """
         Initialize the AmietTE class.
 
@@ -103,8 +103,7 @@ class AmietTE:
         """
         print(f"\n{'Computing Amiets Trailing Edge Model':=^100}\n")  
         if freq is None: 
-            freq = np.linspace(0, 20000, 100)
-            freq[0] = 1e-6 # Avoid zero frequency
+            freq = np.logspace(0, 4.5, num=100, base=10.0) # Default frequency range from 1 Hz to 20 kHz
         self.freq = freq
         self.observers = observers
         self.phipp_method = phipp_method.lower()
@@ -134,6 +133,7 @@ class AmietTE:
         self.chord = data['chord'] if 'chord' in data else chord
         self.span = data['span'] if 'span' in data else span
         self.cinf = data['cinf'] if 'cinf' in data else cinf
+        self.Uc = data['Uc'] if 'Uc' in data else Uc
         
     def compute_spectra(self):
         """
@@ -203,13 +203,15 @@ class AmietTE:
             for j, obs in enumerate(self.observers):
                 x, y, z = obs[0], obs[1], obs[2]
                 SO = np.sqrt(x**2 + be*(y**2 + z**2))
-                self.Directivity[i,j] = rdirsupTE(freq, x, y, z, self.chord, Uinf,24, self.cinf)
-                Spp = (kc*z/(4.0*math.pi*SO))**2 * (2.0 * self.span) * ((abs(self.Directivity[i, j]))**2) * phippi * Lyi
-                Spp = 2.0* math.pi * np.abs(Spp)                    # Convert from Pa^2/(rad/s) to Pa^2/(Hz)
+                self.Directivity[i,j] = rdirsupTE(freq, x, y, z, self.chord, Uinf, self.Uc, self.cinf)
+                Spp_tmp = (kc*z/(4.0*math.pi*SO))**2 * (2.0 * self.span) * ((abs(self.Directivity[i, j]))**2) * phippi * Lyi
+                Spp = 2.0* math.pi * np.abs(Spp_tmp)                    # Convert from Pa^2/(rad/s) to Pa^2/(Hz)
+                if math.isclose(Spp, 0):            # Avoid log(0), case Spp to 1e-8 such that log10(1e-8/4e-10) = -25
+                    Spp = 1e-8
                 self.Spp[i, j] = 10 * np.log10(Spp/(2e-5)**2)
 
-        if self.Spp.any()< -25: 
-            self.Spp[self.Spp < -25] = -25
+        if self.Spp.any()< -10: 
+            self.Spp[self.Spp < -25] = 1e-3
         print(f"\n{'Complete Spp Calculation':.^60}\n")
         return self.Spp
     
