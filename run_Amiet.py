@@ -3,7 +3,7 @@
 Can be used to run the Amiet TE model from a dictionary of arguments.
 """
 import argparse
-from TEModel import ComputeAmiet_TE
+from TEModel import main
 from TEModel import parse_args  # assuming parse_args is exposed
 import numpy as np
 
@@ -21,7 +21,7 @@ def run_amiet():
         "observer_origin": [0,1e-1,0],
         "observer_number": 128,
         "observer_radius": 2.0,
-        "selected_freqs": [1000, 2000, 5000],
+        "selected_freqs": [500, 1000, 2000, 5000],
 
         # WPS and coherence
         "WPS_model": "rozenberg",
@@ -48,8 +48,7 @@ def run_amiet():
     args = argparse.Namespace(**args_dict)
 
     # Run the TE model
-    model = ComputeAmiet_TE(args)
-    model.compute_spectra(args)
+    main(args)
 
 if __name__ == "__main__":
     run_amiet()
