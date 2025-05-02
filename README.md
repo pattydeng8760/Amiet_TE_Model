@@ -88,9 +88,9 @@ output/
 
 For large Helmholtz numbers \( k c \gg 1 \), the far-field sound pressure spectrum is:
 
-\[
+$$
 S_{pp}(f, \phi, \theta) = \left( \frac{k_c z}{4\pi R} \right)^2 \cdot 2L \cdot |D(\phi, \theta)|^2 \cdot \Phi_{pp}\left(k_1 = \frac{\omega}{U_c}\right)
-\]
+$$
 
 Where:
 - \( k_c = \omega / U_c \): chordwise gust wavenumber  
@@ -104,9 +104,9 @@ Where:
 
 A correction factor accounts for the interference between leading and trailing edge radiation:
 
-\[
+$$
 S_{pp}^{LE-TE} = \left|1 - e^{-i k_c c}\right|^2 \cdot S_{pp}(f, \phi, \theta)
-\]
+$$
 
 This reduces low-frequency over-prediction and reverts to the original Amiet model as \( k_c c \to \infty \).
 
