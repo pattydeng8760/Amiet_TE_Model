@@ -60,7 +60,7 @@ python TEModel.py \
 For a complete list of arguments, run:
 
 ```bash
-python ComputeAmiet_TE.py --help
+python TEModel.py --help
 ```
 
 ---
