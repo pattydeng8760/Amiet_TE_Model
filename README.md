@@ -3,7 +3,7 @@
 ## Overview
 
 This repository implements **Amiet’s trailing-edge aeroacoustic model** and augments it with the **leading-edge–trailing-edge (LE-TE) coherent-scattering correction** introduced by Roger & Moreau (2005).  
-The wrapper script `ComputeAmiet_TE.py` performs the following:
+The script `TEModel.py` performs the following:
 
 1. Parses command-line arguments  
 2. Loads boundary-layer and wall-pressure data  
@@ -39,6 +39,13 @@ python TEModel.py \
     --Coherence_model corcos
 ```
 
+- Similarly, wrapper script run_Amiet.py can be used to parse the command line inputs as a dictionary
+
+```bash
+python run_Amiet.py
+```
+
+
 ---
 
 ## Command-Line Arguments (Excerpt)
@@ -48,8 +55,9 @@ python TEModel.py \
 | `-o`, `--output_dir`          | `./output`                   | Output folder |
 | `-oc`, `--output_case`        | `Aimiet_TE`                  | Prefix for output files |
 | `-i`, `--input_dir`           | `./input`                    | Input folder |
-| `-d`, `--input_data`          | `TA10_BLparams_zones.csv`    | Boundary-layer parameter file |
-| `-dr`, `--input_data_row`     | `10`                         | Row index to extract from CSV |
+| `-s`, `--input_style`         | `csv`                        | Input style, either csv or custom. If csv the BL properties will be read from the --input_data csv file, if custom the CLI arguments will be used|
+| `-d`, `--input_data`          | `TA10_BLparams_zones.csv`    | Boundary-layer parameter file, neglected if -s = custom|
+| `-dr`, `--input_data_row`     | `10`                         | Row index to extract from CSV, neglected if -s = custum |
 | `-ob_n`, `--observer_number`  | `12`                         | Number of observers |
 | `-ob_r`, `--observer_radius`  | `2.0`                        | Radius of observer ring [m] |
 | `-sf`, `--selected_freqs`     | `500 1000 2000`              | Frequencies for directivity plot [Hz] |
@@ -93,12 +101,12 @@ S_{pp}(f, \phi, \theta) = \left( \frac{k_c z}{4\pi R} \right)^2 \cdot 2L \cdot |
 $$
 
 Where:
-- \( k_c = \omega / U_c \): chordwise gust wavenumber  
-- \( z \): distance from mid-chord to trailing edge  
-- \( R \): observer distance  
-- \( L \): span (acoustically compact assumption)  
-- \( D(\phi, \theta) \): directivity function  
-- \( \Phi_{pp}(k_1) \): wall-pressure spectrum
+- $$ k_c = \omega / U_c $$: chordwise gust wavenumber  
+- $$ z $$: distance from mid-chord to trailing edge  
+- $$ R $$: observer distance  
+- $$ L $$: span (acoustically compact assumption)  
+- $$ D(\phi, \theta) $$: directivity function  
+- $$ \Phi_{pp}(k_1) $$: wall-pressure spectrum
 
 ### LE-TE Coherent-Scattering Correction (Roger & Moreau 2005)
 
@@ -119,7 +127,3 @@ This reduces low-frequency over-prediction and reverts to the original Amiet mod
 3. Rozenberg, Y., Robert, G., & Moreau, S. (2010). "Wall-pressure spectral density modeling for airfoil broadband trailing-edge noise prediction." *AIAA Journal*, 48(6), 1191–1206.
 
 ---
-
-## License
-
-Released under the MIT License. See the `LICENSE` file for details.
