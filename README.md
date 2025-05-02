@@ -26,7 +26,7 @@ python -m pip install -r requirements.txt
 ## Quick Start
 
 ```bash
-python ComputeAmiet_TE.py \
+python TEModel.py \
     --input_dir   ./input \
     --input_data  TA10_BLparams_zones.csv \
     --input_data_row 10 \
