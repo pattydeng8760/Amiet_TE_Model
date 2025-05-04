@@ -101,12 +101,12 @@ S_{pp}(f, \phi, \theta) = \left( \frac{k_c z}{4\pi R} \right)^2 \cdot 2L \cdot |
 $$
 
 Where:
-- $$ k_c = \omega / U_c $$: chordwise gust wavenumber  
-- $$ z $$: distance from mid-chord to trailing edge  
-- $$ R $$: observer distance  
-- $$ L $$: span (acoustically compact assumption)  
-- $$ D(\phi, \theta) $$: directivity function  
-- $$ \Phi_{pp}(k_1) $$: wall-pressure spectrum
+- $ k_c = \omega / U_c $: chordwise gust wavenumber  
+- $ z $: distance from mid-chord to trailing edge  
+- $ R $: observer distance  
+- $ L $: span (acoustically compact assumption)  
+- $ D(\phi, \theta) $: directivity function  
+- $ \Phi_{pp}(k_1) $: wall-pressure spectrum
 
 ### LE-TE Coherent-Scattering Correction (Roger & Moreau 2005)
 
