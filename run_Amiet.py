@@ -13,12 +13,12 @@ def run_amiet():
         "output_dir": "./output",
         "output_case": "Test_TE",
         "input_dir": "./input",
-        "input_style": "csv",
-        "input_data": "TA10_BLparams_zones.csv",
+        "input_style": "custom",
+        "input_data": "",
         "input_data_row": 20,
 
         # Observer
-        "observer_origin": [0,1e-1,0],
+        "observer_origin": [0.3048/2,1e-1,0],
         "observer_number": 128,
         "observer_radius": 2.0,
         "selected_freqs": [500, 1000, 2000, 5000],
@@ -30,7 +30,8 @@ def run_amiet():
         "Coherence_path": None,
 
         # Boundary layer parameters
-        "Ue": 30.0,
+        "Uref": 30.0,
+        "Ue": 32.0,
         "delta": 0.01,
         "delta_star": 0.006,
         "theta": 0.005,

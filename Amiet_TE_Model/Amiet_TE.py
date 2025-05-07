@@ -205,7 +205,7 @@ class AmietTE:
                 SO = np.sqrt(x**2 + be*(y**2 + z**2))
                 self.Directivity[i,j] = rdirsupTE(freq, x, y, z, self.chord, Uinf, self.Uc, self.cinf)
                 Spp_tmp = (kc*z/(4.0*math.pi*SO))**2 * (2.0 * self.span) * ((abs(self.Directivity[i, j]))**2) * phippi * Lyi
-                Spp = 2.0* math.pi * np.abs(Spp_tmp)                    # Convert from Pa^2/(rad/s) to Pa^2/(Hz)
+                Spp = np.abs(Spp_tmp)                    
                 # if math.isclose(Spp, 0):            # Avoid log(0), case Spp to 1e-8 such that log10(1e-8/4e-10) = -25
                 #     Spp = (3e-5)**2
                 self.Spp[i, j] = 10 * np.log10(Spp/(2e-5)**2)

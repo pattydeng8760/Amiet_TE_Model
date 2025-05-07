@@ -45,7 +45,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--Coherence_path", '-coh_path', type=str, default=None, help="Path to the Coherence data file, relative to the input directory")
 
     # The required boundary layer parameters
-    parser.add_argument("--Ue", type=float, default=30.0, help="Edge velocity (m/s)")
+    parser.add_argument("--Uref", type=float, default=30.0, help="Reference velocity (m/s)")
+    parser.add_argument("--Ue", type=float, default=32.0, help="Edge velocity (m/s)")
     parser.add_argument("--delta", type=float, default=0.01, help="Boundary layer thickness (m)")
     parser.add_argument("--delta_star", type=float, default=0.006, help="Displacement thickness (m)")
     parser.add_argument("--theta", type=float, default=0.005, help="Momentum thickness (m)")
@@ -90,10 +91,10 @@ class ComputeAmiet_TE():
             data = self.map_data(args)
         
         # Check the input directory and file validity
-        if not os.path.exists(self.input_dir):
+        if not os.path.exists(self.input_dir) :
             raise FileNotFoundError(f"Input directory {self.input_dir} does not exist.")
         # Check if the input data file exists
-        if not os.path.isfile(args.input_data ):
+        if not os.path.isfile(args.input_data) and args.input_style == "csv":
             raise FileNotFoundError(f"Input file {args.input_data} does not exist.")
         try: 
             check_data(data)
@@ -127,7 +128,7 @@ class ComputeAmiet_TE():
         arg_dict = vars(args)
         # Keys to include in the Series
         selected_keys = [
-            'Ue', 'delta', 'delta_star', 'theta',
+            'Uref', 'Ue', 'delta', 'delta_star', 'theta',
             'tau_w', 'beta_c', 'PI', 'Rt',
             'dpdx', 'chord', 'span', 'cinf', 'Uc',
         ]
@@ -207,7 +208,7 @@ class ComputeAmiet_TE():
             ax.semilogx(freq, Spp[:, i], 'r-', linewidth=2.5)
             ax.set_title('Amiet\'s Model')
             ax.set_xlabel('Frequency (Hz)')
-            ax.set_ylabel(r'$10 \log_{10} \left(\S_{pp}/p_{\mathrm{ref}}^2\right)$ (dB/Hz)')
+            ax.set_ylabel(r'$10 \log_{10} \left(S_{pp}/p_{\mathrm{ref}}^2\right)$ (dB/Hz)')
             ax.grid(True)
             ax.set_xlim(100, 40000)
             plt.tight_layout()
@@ -257,7 +258,7 @@ class ComputeAmiet_TE():
             Phipp (numpy.ndarray): Wall pressure spectra (unused here)
             Spp (numpy.ndarray): Spectra at each observer (n_probes, n_freq)
         """
-        n_probes = Spp.shape[0]
+        n_probes = Spp.shape[1]
 
         for i in range(n_probes):
             values = np.column_stack((freq, Spp[:, i]))
