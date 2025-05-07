@@ -58,7 +58,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--chord", type=float, default=0.3048, help="Chord length (m)")
     parser.add_argument("--span", type=float, default=0.5715, help="Span (m)")
     parser.add_argument("--cinf", type=float, default=343.0, help="Speed of sound (m/s)")
-    parser.add_argument("--Uc", type=float, default=24, help="Convective velocity (m/s)")
+    parser.add_argument("--Uc", type=float, default=24, help="Convection velocity (m/s)")
     
     return parser.parse_args()
 
@@ -180,7 +180,8 @@ class ComputeAmiet_TE():
             coherence=args.Coherence_path,
             cinf=args.cinf, 
             span=args.span, 
-            chord=args.chord
+            chord=args.chord, 
+            Uref=args.Uc,
             )
         
         # Compute the spectra
