@@ -181,7 +181,7 @@ class ComputeAmiet_TE():
             cinf=args.cinf, 
             span=args.span, 
             chord=args.chord, 
-            Uref=args.Uc,
+            Uc=args.Uc,
             )
         
         # Compute the spectra

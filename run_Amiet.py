@@ -18,16 +18,16 @@ def run_amiet():
         "input_data_row": 20,
 
         # Observer
-        "observer_origin": [0.3048/2,1e-1,0],
+        "observer_origin": [0.0,0.0,0.0],
         "observer_number": 128,
         "observer_radius": 2.0,
         "selected_freqs": [500, 1000, 2000, 5000],
 
         # WPS and coherence
-        "WPS_model": "rozenberg",
-        "Coherence_model": "corcos",
-        "WPS_path": None,
-        "Coherence_path": None,
+        "WPS_model": "experiment",
+        "Coherence_model": "rozenberg",
+        "WPS_path": 'wall_pressure_spectra_021.dat',
+        "Coherence_path": 'correlation_length.dat',
 
         # Boundary layer parameters
         "Uref": 30.0,
@@ -42,7 +42,8 @@ def run_amiet():
         "dpdx": -1345.0,
         "chord": 0.3048,
         "span": 0.5715,
-        "cinf": 343.0
+        "cinf": 343.0, 
+        "Uc": 24.0,
     }
 
     # Convert to Namespace

@@ -21,7 +21,7 @@ class PhippModels:
     def __init__(self, model:str, data:pd.DataFrame=None, \
         normalization:str='frequency', spectral_normalization:float=2e-5, verbose:bool=False):
         print(f"\n{'Computing Analytical Wall-Pressure Spectra':.^60}\n")  
-        assert model.lower() in ['goody','rozenberg', 'lee'], "Model must be 'goody' or 'rozenberg' or 'lee'"
+        assert model.lower() in ['goody','rozenberg', 'lee', 'experiment','simulation'], "Model must be 'goody' or 'rozenberg' or 'lee'or 'experiment' or 'simulation'"
         self.model = model
         self.verbose = verbose
         self.spectral_norm = spectral_normalization
@@ -49,6 +49,8 @@ class PhippModels:
             inputs = phipp_Rozenberg(data)
         elif self.model.lower() == 'lee':
             inputs = phipp_Lee(data)
+        elif self.model.lower() == 'experiment' or self.model.lower() == 'simulation':
+            return None
         self.data = data
         # Unpack the inputs and assign them to the class attributes
         (
